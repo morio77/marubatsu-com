@@ -60,7 +60,7 @@ class BattlePage extends StatelessWidget {
   }
 
   Widget BattleField(BattlePageModel model) {
-    /// 一つのセルを表すウィジェット
+    // 一つのセルを表すウィジェット
     Widget _cell(CellType cellType, index) {
       return Container(
         decoration: BoxDecoration(
@@ -69,9 +69,9 @@ class BattlePage extends StatelessWidget {
         ),
         child: cellType == CellType.none ? Material(
           color: Colors.orange,
-          child: model.isSelfTurn() ? InkWell(
+          child: (model.isSelfTurn() && model.battleResult == BattleResult.undecided) ? InkWell(
             onTap: () => {
-              model.cellTapped(index),
+               model.cellTapped(index),
             },
           ) : Container(),
         ) : Center(

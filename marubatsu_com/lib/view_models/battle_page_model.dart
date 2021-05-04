@@ -36,8 +36,10 @@ class BattlePageModel extends ChangeNotifier {
     // 決着かついたかどうか調べる
     _checkBattleResult();
 
-    // コンピュータに入力させる
-    await _comTurn();
+    // 決着がついていなければ、コンピュータに入力させる
+    if (battleResult == BattleResult.undecided) {
+      await _comTurn();
+    }
   }
 
   /// コンピュータのターンになったら呼ばれる
