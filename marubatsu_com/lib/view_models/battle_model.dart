@@ -3,10 +3,10 @@ import 'package:marubatsu_com/utils/cell_type_utils.dart';
 
 @immutable
 class BattleModel {
-  final comLevel;
-  final ownCellType;
-  final cellInfo;
-  final cellTypeInTurn;
+  final int comLevel;
+  final CellType ownCellType;
+  final List<CellType> cellInfo;
+  final CellType cellTypeInTurn;
 
   BattleModel(this.comLevel, this.ownCellType, this.cellInfo, this.cellTypeInTurn);
 

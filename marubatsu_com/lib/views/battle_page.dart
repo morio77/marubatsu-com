@@ -24,14 +24,44 @@ class BattlePage extends StatelessWidget {
               centerTitle: true,
             ),
             body: Center(
-              child: CustomPaint(
-                size: Size(100, 100),
-                painter: CellPainter(CellType.batsu),
-              ),
+              child: BattleField(model),
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget BattleField(BattlePageModel model) {
+    /// 一つのセルを表すウィジェット
+    Widget _cell(CellType cellType, index) {
+      return Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black12, width: 1.0),
+          color: Colors.white54,
+        ),
+        child: cellType == CellType.none ? Material(
+          color: Colors.orange,
+          child: model.isSelfTurn() ? InkWell(
+            onTap: () => {
+              model.cellTapped(index),
+            },
+          ) : Container(),
+        ) : Center(
+          child: CustomPaint(
+            size: Size(50, 50),
+            painter: CellPainter(cellType),
+          ),
+        ),
+      );
+    }
+
+    final gridViewList = List.generate(9, (index) => _cell(model.battleModel.cellInfo[index], index));
+
+    return GridView.count(
+      physics: NeverScrollableScrollPhysics(),
+      crossAxisCount: 3,
+      children: gridViewList,
     );
   }
 }
