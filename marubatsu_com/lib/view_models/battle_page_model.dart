@@ -24,7 +24,7 @@ class BattlePageModel extends ChangeNotifier {
   }
 
   /// 自分がセルをタップされた時に呼ばれる
-  void cellTapped(int index) {
+  Future<void> cellTapped(int index) async {
     // バトルモデルを更新する
     final cellTypeNextTurn = ownCellType == CellType.maru ? CellType.batsu : CellType.maru;
     final updatedCellInfo = battleModel.cellInfo..[index] = ownCellType;
@@ -32,11 +32,14 @@ class BattlePageModel extends ChangeNotifier {
     notifyListeners();
 
     // コンピュータに入力させる
-    _comTurn();
+    await _comTurn();
   }
 
   /// コンピュータのターンになったら呼ばれる
-  void _comTurn() {
+  Future<void> _comTurn() async {
+    // ちょっと待つ
+    await Future.delayed(Duration(milliseconds: 500));
+
     // 次に打つ手を計算する
     final comCellType = ownCellType == CellType.maru ? CellType.batsu : CellType.maru;
     final comModel = ComModel(battleModel.comLevel, battleModel.cellInfo, comCellType);
