@@ -19,7 +19,7 @@ class BattlePageModel extends ChangeNotifier {
 
     // COMのターンの場合のみ、COMに手を打たせる
     if (ownCellType != battleModel.cellTypeInTurn) {
-      comTurn;
+      _comTurn();
     }
   }
 
@@ -32,11 +32,11 @@ class BattlePageModel extends ChangeNotifier {
     notifyListeners();
 
     // コンピュータに入力させる
-    comTurn();
+    _comTurn();
   }
 
   /// コンピュータのターンになったら呼ばれる
-  void comTurn() {
+  void _comTurn() {
     // 次に打つ手を計算する
     final comCellType = ownCellType == CellType.maru ? CellType.batsu : CellType.maru;
     final comModel = ComModel(battleModel.comLevel, battleModel.cellInfo, comCellType);
