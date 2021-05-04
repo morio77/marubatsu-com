@@ -14,7 +14,7 @@ class HomePage extends StatelessWidget {
         builder: (context, model, _) {
           return Scaffold(
             appBar: AppBar(
-              title: Text('ホーム画面'),
+              title: Text('マルバツ対戦（COM）'),
               centerTitle: true,
             ),
             body: Center(

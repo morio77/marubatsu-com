@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:marubatsu_com/utils/cell_type_utils.dart';
 import 'package:marubatsu_com/views/battle_page.dart';
 import 'package:marubatsu_com/views/home_page.dart';
 
-void main() {
+Future<void> main() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(CellTypeAdapter());
+  await Hive.openBox('settings');
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
