@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:marubatsu_com/utils/battle_result_utils.dart';
 import 'package:marubatsu_com/utils/cell_type_utils.dart';
 import 'package:marubatsu_com/view_models/battle_model.dart';
 import 'package:marubatsu_com/view_models/com_model.dart';
@@ -7,6 +8,7 @@ import 'package:marubatsu_com/view_models/com_model.dart';
 class BattlePageModel extends ChangeNotifier {
   CellType ownCellType;
   BattleModel battleModel;
+  BattleResult battleResult;
 
   /// コンストラクタ
   BattlePageModel(int comLevel) : this.initialize(comLevel);
@@ -31,6 +33,9 @@ class BattlePageModel extends ChangeNotifier {
     battleModel = battleModel.copyWith(cellInfo: updatedCellInfo, cellTypeInTurn: cellTypeNextTurn);
     notifyListeners();
 
+    // 決着かついたかどうか調べる
+    _checkBattleResult();
+
     // コンピュータに入力させる
     await _comTurn();
   }
@@ -48,6 +53,15 @@ class BattlePageModel extends ChangeNotifier {
     // バトルモデルを更新する
     battleModel = battleModel.copyWith(cellInfo: updatedCellInfo, cellTypeInTurn: ownCellType);
 
+    notifyListeners();
+
+    // 決着かついたかどうか調べる
+    _checkBattleResult();
+  }
+
+  /// 決着かついたかどうか調べる
+  void _checkBattleResult() {
+    battleResult = BattleResultUtils.checkBattleResult(battleModel.cellInfo);
     notifyListeners();
   }
 

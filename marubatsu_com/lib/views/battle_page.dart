@@ -20,7 +20,8 @@ class BattlePage extends StatelessWidget {
         builder: (context, model, _) {
           return Scaffold(
             appBar: AppBar(
-              title: Text('対戦中（LV.$comLevel）'),
+              // title: Text('対戦中（LV.$comLevel）'),
+              title: Text(model.battleResult.toString()),
               centerTitle: true,
             ),
             body: Center(
