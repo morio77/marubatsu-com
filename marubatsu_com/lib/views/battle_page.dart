@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:marubatsu_com/utils/battle_result_utils.dart';
 import 'package:marubatsu_com/utils/cell_type_utils.dart';
 import 'package:marubatsu_com/view_models/battle_page_model.dart';
 import 'package:marubatsu_com/views/cell_painter.dart';
@@ -7,7 +8,7 @@ import 'package:provider/provider.dart';
 
 class BattlePage extends StatelessWidget {
   static const routeName = '/battle';
-  
+
   @override
   Widget build(BuildContext context) {
     // 引数で渡されてくるCOMレベルと自分のセルタイプを取得しておく
@@ -20,12 +21,37 @@ class BattlePage extends StatelessWidget {
         builder: (context, model, _) {
           return Scaffold(
             appBar: AppBar(
-              // title: Text('対戦中（LV.$comLevel）'),
-              title: Text(model.battleResult.toString()),
+              title: Text('対戦中（LV.$comLevel）'),
               centerTitle: true,
             ),
             body: Center(
-              child: BattleField(model),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.all(20.0),
+                      decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(),
+                          )
+                      ),
+                      child: Text(
+                        model.battleResult == BattleResult.undecided
+                            ? '試合中'
+                            : '試合終了',
+                        style: TextStyle(
+                          fontSize: 24,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 300,
+                      height: 300,
+                      child: BattleField(model),
+                    ),
+                  ],
+                )
             ),
           );
         },

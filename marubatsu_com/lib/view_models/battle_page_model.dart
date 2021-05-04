@@ -8,7 +8,7 @@ import 'package:marubatsu_com/view_models/com_model.dart';
 class BattlePageModel extends ChangeNotifier {
   CellType ownCellType;
   BattleModel battleModel;
-  BattleResult battleResult;
+  BattleResult battleResult = BattleResult.undecided;
 
   /// コンストラクタ
   BattlePageModel(int comLevel) : this.initialize(comLevel);
