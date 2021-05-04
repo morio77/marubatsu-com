@@ -18,7 +18,11 @@ class HomePage extends StatelessWidget {
               centerTitle: true,
             ),
             body: Center(
-              child: Text('ホーム画面'),
+              child: Text(model.ownCellType.toString()),
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => model.reverseOwnCellType(),
+              child: Icon(Icons.swap_calls),
             ),
           );
         },

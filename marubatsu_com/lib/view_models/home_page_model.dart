@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:marubatsu_com/utils/cell_type_utils.dart';
 
 class HomePageModel extends ChangeNotifier {
-  var ownCellType;
+  CellType ownCellType;
 
   /// コンストラクタ
   HomePageModel() : this.initialize();
@@ -12,14 +12,23 @@ class HomePageModel extends ChangeNotifier {
     readOwnCellType();
   }
 
-  Future<void> readOwnCellType() async {
+  CellType readOwnCellType() {
     final box = Hive.box('settings');
     ownCellType = box.get('own_cell_type');
-    print(ownCellType);
-    if (ownCellType == null) {
+    if (ownCellType == null || ownCellType == CellType.none) {
       ownCellType = CellType.maru;
-      box.put('own_cell_type', CellType.maru);
+      box.put('own_cell_type', ownCellType);
     }
-    print(box.get('own_cell_type'));
+    notifyListeners();
+    return ownCellType;
+  }
+
+  // 自分のセルタイプを反転させる
+  CellType reverseOwnCellType() {
+    ownCellType = ownCellType == CellType.maru ? CellType.batsu : CellType.maru;
+    final box = Hive.box('settings');
+    box.put('own_cell_type', ownCellType);
+    notifyListeners();
+    return ownCellType;
   }
 }
