@@ -2,10 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:marubatsu_com/utils/cell_type_utils.dart';
 import 'package:marubatsu_com/view_models/home_page_model.dart';
+import 'package:marubatsu_com/views/battle_page.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
-  static const rootName = '/home';
+  static const routeName = '/home';
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +63,7 @@ class HomePage extends StatelessWidget {
     for (final level in levels) {
       buttonList.add(
         ElevatedButton(
-          onPressed: () => print(level.toString()),
+          onPressed: () => Navigator.of(context).pushNamed(BattlePage.routeName, arguments: {'comLevel': level}),
           child: Text('Lv.$level'),
         ),
       );

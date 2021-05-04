@@ -20,10 +20,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: HomePage.rootName,
+      initialRoute: HomePage.routeName,
       routes: {
-        HomePage.rootName: (_) => HomePage(),
-        BattlePage.rootName: (_) => BattlePage(),
+        HomePage.routeName: (_) => HomePage(),
+        BattlePage.routeName: (_) => BattlePage(),
       },
     );
   }
