@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:marubatsu_com/utils/battle_result_utils.dart';
 import 'package:marubatsu_com/utils/cell_type_utils.dart';
 
@@ -62,12 +60,44 @@ class ComModel {
     final noneCellTypeIndexes = _pickNoneCellTypeIndexes();
 
     // リーチがあればそのIndexを返す関数（なければ-1を返却）
-    int _reachCellIndex(List<CellType> cellInfo) {
-      final comWinBattleResult = comCellType == CellType.maru ? BattleResult.maruWin : BattleResult.batsuWin;
+    int _reachCellIndex(List<CellType> cellInfo, CellType checkCellType) {
+      final WinBattleResult = checkCellType == CellType.maru ? BattleResult.maruWin : BattleResult.batsuWin;
       for (final noneCellTypeIndex in noneCellTypeIndexes) {
-        final tmpUpdatedCellInfo = [...cellInfo]..[noneCellTypeIndex] = comCellType;
-        if (BattleResultUtils.checkBattleResult(tmpUpdatedCellInfo) == comWinBattleResult) {
+        final tmpUpdatedCellInfo = [...cellInfo]..[noneCellTypeIndex] = checkCellType;
+        if (BattleResultUtils.checkBattleResult(tmpUpdatedCellInfo) == WinBattleResult) {
           return noneCellTypeIndex;
+        }
+      }
+      return -1;
+    }
+
+    // ダブルリーチを取ることができるセルがあれば、そのIndexを返す関数（なければ-1を返却）
+    int _checkCanGetDoubleReach(List<CellType> cellInfo, CellType checkCellType) {
+      final WinBattleResult = checkCellType == CellType.maru ? BattleResult.maruWin : BattleResult.batsuWin;
+      for (final noneCellTypeIndex in noneCellTypeIndexes) {
+        var reachCount = 0;
+        final tmpUpdatedCellInfo = [...cellInfo]..[noneCellTypeIndex] = checkCellType;
+        for (final noneCellTypeIndex2 in noneCellTypeIndexes) {
+          if (BattleResultUtils.checkBattleResult([...tmpUpdatedCellInfo]..[noneCellTypeIndex2] = checkCellType) == WinBattleResult) {
+            reachCount++;
+            if (reachCount >= 2) {
+              return noneCellTypeIndex;
+            }
+          }
+        }
+      }
+      return -1;
+    }
+
+    // リーチを取ることができるセルがあれば、そのIndexを返す関数（なければ-1を返却）
+    int _checkCanGetReach(List<CellType> cellInfo, CellType checkCellType) {
+      final WinBattleResult = checkCellType == CellType.maru ? BattleResult.maruWin : BattleResult.batsuWin;
+      for (final noneCellTypeIndex in noneCellTypeIndexes) {
+        final tmpUpdatedCellInfo = [...cellInfo]..[noneCellTypeIndex] = checkCellType;
+        for (final noneCellTypeIndex2 in noneCellTypeIndexes) {
+          if (BattleResultUtils.checkBattleResult([...tmpUpdatedCellInfo]..[noneCellTypeIndex2] = checkCellType) == WinBattleResult) {
+            return noneCellTypeIndex;
+          }
         }
       }
       return -1;
@@ -77,10 +107,7 @@ class ComModel {
     /// == 先手の場合 ここから ==
     if (comCellType == CellType.maru) {
       final doesBatsuPlacesCenter = cellInfo[4] == CellType.batsu;
-      final doesBatsuPlacedCorner = (cellInfo[0] == CellType.batsu || cellInfo[2] == CellType.batsu || cellInfo[6] == CellType.batsu || cellInfo[8] == CellType.batsu);
-      final doesBatsuPlacedDiagonalCorner = ((cellInfo[0] == CellType.batsu && cellInfo[8] == CellType.batsu) || (cellInfo[2] == CellType.batsu || cellInfo[6] == CellType.batsu));
       final doesBatsuPlacedSide = (cellInfo[1] == CellType.batsu || cellInfo[3] == CellType.batsu || cellInfo[5] == CellType.batsu || cellInfo[7] == CellType.batsu);
-      final doesMaruPlacesCenter = cellInfo[4] == CellType.maru;
       final doesMaruPlacedCorner = (cellInfo[0] == CellType.maru || cellInfo[2] == CellType.maru || cellInfo[6] == CellType.maru || cellInfo[8] == CellType.maru);
       final doesMaruPlacedSide = (cellInfo[1] == CellType.maru || cellInfo[3] == CellType.maru || cellInfo[5] == CellType.maru || cellInfo[7] == CellType.maru);
 
@@ -102,21 +129,51 @@ class ComModel {
           final sideCellIndexed = [1, 3, 5, 7];
           sideCellIndexed.shuffle();
           for (final index in sideCellIndexed) {
-            if (cellInfo[index] == CellType.none &&  _reachCellIndex([...cellInfo]..[index] = CellType.maru) != -1) {
+            if (cellInfo[index] == CellType.none &&  _reachCellIndex([...cellInfo]..[index] = CellType.maru, CellType.maru) != -1) {
               return [...cellInfo]..[index] = CellType.maru;
             }
           }
         }
 
-        // 1手目で「角」「辺」に置いていて、かつ、相手が「中」以外に置いた場合（ToDo:もう少し考える）
+        // 1手目で「角」「辺」に置いていて、かつ、相手が「中」以外に置いた場合
         else if ((doesMaruPlacedCorner || doesMaruPlacedSide) && !doesBatsuPlacesCenter) {
           // 「中」に置く
           return [...cellInfo]..[4] = CellType.maru;
         }
       }
 
-      // 3手目以降、リーチのマスがあればそこに置いて終了、そうでなければ、相手のリーチを潰す。それもなければランダム
-      return _reachCellIndex(cellInfo) != -1 ? ([...cellInfo]..[_reachCellIndex(cellInfo)] = CellType.maru) : _calcLevel2();
+      // 上記のどれにも当てはまらない場合
+      // 勝てるセルがあれば、そこに置く
+      if (_reachCellIndex(cellInfo, CellType.maru) != -1) {
+        return [...cellInfo]..[_reachCellIndex(cellInfo, CellType.maru)] = CellType.maru;
+      }
+
+      // 相手にリーチがあれば、そこに置く
+      else if (_reachCellIndex(cellInfo, CellType.batsu) != -1) {
+        return [...cellInfo]..[_reachCellIndex(cellInfo, CellType.batsu)] = CellType.maru;
+      }
+
+      // 相手にダブルリーチを取られそうなら、そこに置く
+      else if (_checkCanGetDoubleReach(cellInfo, CellType.batsu) != -1) {
+        return [...cellInfo]..[_checkCanGetDoubleReach(cellInfo, CellType.batsu)] = CellType.maru;
+      }
+
+      // ダブルリーチを取れるなら、そこに置く
+      else if (_checkCanGetDoubleReach(cellInfo, CellType.maru) != -1) {
+        return [...cellInfo]..[_checkCanGetDoubleReach(cellInfo, CellType.maru)] = CellType.maru;
+      }
+
+      // リーチを取れるなら、そこに置く
+      else if (_checkCanGetReach(cellInfo, CellType.maru) != -1) {
+        return [...cellInfo]..[_checkCanGetReach(cellInfo, CellType.maru)] = CellType.maru;
+      }
+
+      // 上記以外は、ランダムに置く
+      else {
+        final noneCellTypeIndexes = _pickNoneCellTypeIndexes();
+        noneCellTypeIndexes.shuffle();
+        return [...cellInfo]..[noneCellTypeIndexes[0]] = CellType.maru;
+      }
     }
     /// == 先手の場合 ここまで ==
 
@@ -159,7 +216,7 @@ class ComModel {
 
       // リーチのマスがあればそこに置いて終了、そうでなければ、相手のリーチを潰す。それもなければランダム
       else {
-        return _reachCellIndex(cellInfo) != -1 ? ([...cellInfo]..[_reachCellIndex(cellInfo)] = CellType.batsu) : _calcLevel2();
+        return _reachCellIndex(cellInfo, CellType.batsu) != -1 ? ([...cellInfo]..[_reachCellIndex(cellInfo, CellType.batsu)] = CellType.batsu) : _calcLevel2();
       }
     }
     /// == 後手の場合 ここまで ==
