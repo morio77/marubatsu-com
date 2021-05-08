@@ -62,7 +62,7 @@ class ComModel {
     final noneCellTypeIndexes = _pickNoneCellTypeIndexes();
 
     // リーチがあればそのIndexを返す関数（なければ-1を返却）
-    int _reachCellIndex() {
+    int _reachCellIndex(List<CellType> cellInfo) {
       final comWinBattleResult = comCellType == CellType.maru ? BattleResult.maruWin : BattleResult.batsuWin;
       for (final noneCellTypeIndex in noneCellTypeIndexes) {
         final tmpUpdatedCellInfo = [...cellInfo]..[noneCellTypeIndex] = comCellType;
@@ -74,33 +74,94 @@ class ComModel {
     }
 
     // 先手が後手で戦略が大きく異なる
-    if (comCellType == CellType.maru) { /// 先手の場合
-
-    }
-    else if (comCellType == CellType.batsu) { /// 後手の場合
-      final isMaruCount1 = [...cellInfo].where((cellType) => cellType == CellType.maru).length == 1;
+    /// == 先手の場合 ここから ==
+    if (comCellType == CellType.maru) {
+      final doesBatsuPlacesCenter = cellInfo[4] == CellType.batsu;
+      final doesBatsuPlacedCorner = (cellInfo[0] == CellType.batsu || cellInfo[2] == CellType.batsu || cellInfo[6] == CellType.batsu || cellInfo[8] == CellType.batsu);
+      final doesBatsuPlacedDiagonalCorner = ((cellInfo[0] == CellType.batsu && cellInfo[8] == CellType.batsu) || (cellInfo[2] == CellType.batsu || cellInfo[6] == CellType.batsu));
+      final doesBatsuPlacedSide = (cellInfo[1] == CellType.batsu || cellInfo[3] == CellType.batsu || cellInfo[5] == CellType.batsu || cellInfo[7] == CellType.batsu);
       final doesMaruPlacesCenter = cellInfo[4] == CellType.maru;
       final doesMaruPlacedCorner = (cellInfo[0] == CellType.maru || cellInfo[2] == CellType.maru || cellInfo[6] == CellType.maru || cellInfo[8] == CellType.maru);
       final doesMaruPlacedSide = (cellInfo[1] == CellType.maru || cellInfo[3] == CellType.maru || cellInfo[5] == CellType.maru || cellInfo[7] == CellType.maru);
+
+      final isFirstTurn = cellInfo.every((cellType) => cellType == CellType.none);
+      final isSecondTurn = [...cellInfo].where((cellType) => cellType == CellType.maru).length == 1;
+      // 初手の場合
+      if (isFirstTurn) {
+        // ランダムに置く
+        final noneCellTypeIndexes = List.generate(9, (index) => index);
+        noneCellTypeIndexes.shuffle();
+        return [...cellInfo]..[noneCellTypeIndexes[0]] = CellType.maru;
+      }
+
+      // 2手目の場合
+      else if (isSecondTurn) {
+        // 1手目で「中」に置いていて、かつ、相手が「辺」に置いた場合
+        if (cellInfo[4] == CellType.maru && doesBatsuPlacedSide) {
+          // 「辺」かつリーチになるセルに置く
+          final sideCellIndexed = [1, 3, 5, 7];
+          sideCellIndexed.shuffle();
+          for (final index in sideCellIndexed) {
+            if (_reachCellIndex([...cellInfo]..[index] = CellType.maru) != -1) {
+              return [...cellInfo]..[index] = CellType.maru;
+            }
+          }
+        }
+
+        // 1手目で「角」「辺」に置いていて、かつ、相手が「中」以外に置いた場合（ToDo:もう少し考える）
+        else if ((doesMaruPlacedCorner || doesMaruPlacedSide) && !doesMaruPlacesCenter) {
+
+        }
+      }
+
+      // 3手目以降、リーチのマスがあればそこに置いて終了、そうでなければ、相手のリーチを潰す。それもなければランダム
+      return _reachCellIndex(cellInfo) != -1 ? ([...cellInfo]..[_reachCellIndex(cellInfo)] = CellType.batsu) : _calcLevel2();
+    }
+    /// == 先手の場合 ここまで ==
+
+    /// == 後手の場合 ここから ==
+    else if (comCellType == CellType.batsu) {
+      final isMaruCount1 = [...cellInfo].where((cellType) => cellType == CellType.maru).length == 1;
+      final isMaruCount2 = [...cellInfo].where((cellType) => cellType == CellType.maru).length == 2;
+      final doesMaruPlacesCenter = cellInfo[4] == CellType.maru;
+      final doesMaruPlacedCorner = (cellInfo[0] == CellType.maru || cellInfo[2] == CellType.maru || cellInfo[6] == CellType.maru || cellInfo[8] == CellType.maru);
+      final doesMaruPlacedDiagonalCorner = ((cellInfo[0] == CellType.maru && cellInfo[8] == CellType.maru) || (cellInfo[2] == CellType.maru && cellInfo[6] == CellType.maru));
+      final doesMaruPlacedSide = (cellInfo[1] == CellType.maru || cellInfo[3] == CellType.maru || cellInfo[5] == CellType.maru || cellInfo[7] == CellType.maru);
+
       // 1手目かつ、「中」にマルが置かれた場合
       if (isMaruCount1 && doesMaruPlacesCenter) {
         // 「角」のどこかに置く
         final cornerIndexes = [0, 2, 6, 8];
         cornerIndexes.shuffle();
         return [...cellInfo]..[cornerIndexes[0]] = CellType.batsu;
-      } // 1手目かつ、「角」にマルが置かれた場合
+      }
+
+      // 1手目かつ、「角」にマルが置かれた場合
       else if (isMaruCount1 && doesMaruPlacedCorner) {
         // 「中」に置く
         return [...cellInfo]..[4] = CellType.batsu;
-      } // 1手目かつ、「辺」にマルが置かれた場合
+      }
+
+      // 1手目かつ、「辺」にマルが置かれた場合
       else if (isMaruCount1 && doesMaruPlacedSide) {
         // 「中」もしくは「マルから見て縦横方向すべてのどこか(T.B.D.)」に置く
         return [...cellInfo]..[4] = CellType.batsu;
       }
-      else { // リーチのマスがあればそこに置いて、そうでなければ、相手のリーチを潰す。それもなければランダム
-        return _reachCellIndex() != -1 ? ([...cellInfo]..[_reachCellIndex()] = CellType.batsu) : _calcLevel2();
+
+      // 2手目でかつ、対角の「角」にマルが置かれた場合
+      if (isMaruCount2 && doesMaruPlacedDiagonalCorner) {
+        // 「辺」のどこかに置く
+        final cornerIndexes = [1, 3, 5, 7];
+        cornerIndexes.shuffle();
+        return [...cellInfo]..[cornerIndexes[0]] = CellType.batsu;
+      }
+
+      // リーチのマスがあればそこに置いて終了、そうでなければ、相手のリーチを潰す。それもなければランダム
+      else {
+        return _reachCellIndex(cellInfo) != -1 ? ([...cellInfo]..[_reachCellIndex(cellInfo)] = CellType.batsu) : _calcLevel2();
       }
     }
+    /// == 後手の場合 ここまで ==
 
   }
 
