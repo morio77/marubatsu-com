@@ -102,20 +102,21 @@ class ComModel {
           final sideCellIndexed = [1, 3, 5, 7];
           sideCellIndexed.shuffle();
           for (final index in sideCellIndexed) {
-            if (_reachCellIndex([...cellInfo]..[index] = CellType.maru) != -1) {
+            if (cellInfo[index] == CellType.none &&  _reachCellIndex([...cellInfo]..[index] = CellType.maru) != -1) {
               return [...cellInfo]..[index] = CellType.maru;
             }
           }
         }
 
         // 1手目で「角」「辺」に置いていて、かつ、相手が「中」以外に置いた場合（ToDo:もう少し考える）
-        else if ((doesMaruPlacedCorner || doesMaruPlacedSide) && !doesMaruPlacesCenter) {
-
+        else if ((doesMaruPlacedCorner || doesMaruPlacedSide) && !doesBatsuPlacesCenter) {
+          // 「中」に置く
+          return [...cellInfo]..[4] = CellType.maru;
         }
       }
 
       // 3手目以降、リーチのマスがあればそこに置いて終了、そうでなければ、相手のリーチを潰す。それもなければランダム
-      return _reachCellIndex(cellInfo) != -1 ? ([...cellInfo]..[_reachCellIndex(cellInfo)] = CellType.batsu) : _calcLevel2();
+      return _reachCellIndex(cellInfo) != -1 ? ([...cellInfo]..[_reachCellIndex(cellInfo)] = CellType.maru) : _calcLevel2();
     }
     /// == 先手の場合 ここまで ==
 
